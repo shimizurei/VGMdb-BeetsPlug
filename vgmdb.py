@@ -141,7 +141,6 @@ class VGMdbPlugin(BeetsPlugin):
                 lyricists.append(lyricist["names"][self.lang[0]])
             else:
                 lyricists.append(lyricist["names"]["ja"])
-                # lyricists.append(lyricist["names"]["en"])
 
         lyricist = lyricists[0] #need try/except
         if item["lyricists"][0].has_key("link"):
@@ -203,7 +202,7 @@ class VGMdbPlugin(BeetsPlugin):
                         title = track["names"][lang_1]
 
                     else:
-                        print("THIS TRACKLIST IS POORLY FORMATTED. FIX IN AN EXTERNAL PROGRAM.")
+                        log.debug("THIS TRACKLIST IS POORLY FORMATTED. FIX IN AN EXTERNAL PROGRAM.")
                         break
                 else:
                     title = track["names"].values()[0]
