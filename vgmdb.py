@@ -159,7 +159,6 @@ class VGMdbPlugin(BeetsPlugin):
                 langs = ("German", "French", "Korean", "Chinese", "Italian")
 
                 name_eng_ro_jpn = any([lang in ("English", "Romaji", "Japanese") for lang in track["names"].keys()])
-
                 keys_in_langs = filter(lambda key: key in langs, track["names"].keys())
                 keys_not_in_langs = filter(lambda key: key not in langs, track["names"].keys())
 
@@ -168,18 +167,15 @@ class VGMdbPlugin(BeetsPlugin):
                         lang_0 = [keys_in_langs][0][0]
                         lang_1 = [keys_not_in_langs][0][0]
                         lang_2 = [keys_not_in_langs][0][1]
-
                         title = track["names"][lang_2] + " " + "(" + track["names"][lang_1] + "_" + track["names"][lang_0] + ")"
 
                     elif num_names == 2:
                         lang_0 = [keys_in_langs][0][0]
                         lang_1 = [keys_not_in_langs][0][0]
-
                         title = track["names"][lang_1] + " " + "(" + track["names"][lang_0] + ")"
 
                     elif num_names == 1:
                         lang_0 = [keys_in_langs][0][0]
-
                         title = track["names"][lang_0]
 
                 elif keys_not_in_langs and name_eng_ro_jpn:
@@ -187,18 +183,15 @@ class VGMdbPlugin(BeetsPlugin):
                         lang_1 = [keys_not_in_langs][0][0]
                         lang_2 = [keys_not_in_langs][0][1]
                         lang_3 = [keys_not_in_langs][0][2]
-
                         title = track["names"][lang_2] + " " + "(" + track["names"][lang_1] + "_" + track["names"][lang_3] + ")"
 
                     elif num_names == 2:
                         lang_1 = [keys_not_in_langs][0][0]
                         lang_2 = [keys_not_in_langs][0][1]
-
                         title = track["names"][lang_2] + " " + "(" + track["names"][lang_1] + ")"
 
                     elif num_names == 1:
                         lang_1 = [keys_not_in_langs][0][0]
-
                         title = track["names"][lang_1]
 
                     else:
