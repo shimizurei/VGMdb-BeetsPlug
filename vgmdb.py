@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Adds VGMdb search support to Beets
 """
 from beets.autotag.hooks import AlbumInfo, TrackInfo, Distance
@@ -8,6 +9,7 @@ import requests
 import re
 
 log = logging.getLogger('beets')
+version = '1.1.0'
 
 class VGMdbPlugin(BeetsPlugin):
 
@@ -17,7 +19,7 @@ class VGMdbPlugin(BeetsPlugin):
             'source_weight': 1.0,
             'lang-priority': 'en, ja-latn'
         })
-        log.debug('Querying VGMdb')
+        log.debug('Querying VGMdb {0}'.format(version))
         self.source_weight = self.config['source_weight'].as_number()
         self.lang = self.config['lang-priority'].get().split(",")
 
@@ -132,6 +134,21 @@ class VGMdbPlugin(BeetsPlugin):
         else:
             artist_id = None
 
+        # Get Lyricist Information
+        lyricists = []
+        for lyricist in item["lyricists"]:
+            if lyricist["names"].has_key(self.lang[0]):
+                lyricists.append(lyricist["names"][self.lang[0]])
+            else:
+                lyricists.append(lyricist["names"]["ja"])
+                # lyricists.append(lyricist["names"]["en"])
+
+        lyricist = lyricists[0] #need try/except
+        if item["lyricists"][0].has_key("link"):
+            lyricist_id = item["lyricists"][0]["link"][7:]
+        else:
+            lyricist_id = None
+
         # Get Track metadata
         Tracks = []
         total_index = 0
@@ -139,12 +156,59 @@ class VGMdbPlugin(BeetsPlugin):
             for track_index, track in enumerate(disc["tracks"]):
                 total_index += 1
 
-                if track["names"].has_key("English"):
-                    title = track["names"]["English"]
-                elif track["names"].has_key("Romaji"):
-                    title = track["names"]["Romaji"]
+                num_names = len(track["names"].keys())
+                langs = ("German", "French", "Korean", "Chinese", "Italian")
+
+                name_eng_ro_jpn = any([lang in ("English", "Romaji", "Japanese") for lang in track["names"].keys()])
+
+                keys_in_langs = filter(lambda key: key in langs, track["names"].keys())
+                keys_not_in_langs = filter(lambda key: key not in langs, track["names"].keys())
+
+                if keys_in_langs:
+                    if num_names == 3 and name_eng_ro_jpn:
+                        lang_0 = [keys_in_langs][0][0]
+                        lang_1 = [keys_not_in_langs][0][0]
+                        lang_2 = [keys_not_in_langs][0][1]
+
+                        title = track["names"][lang_2] + " " + "(" + track["names"][lang_1] + "_" + track["names"][lang_0] + ")"
+
+                    elif num_names == 2:
+                        lang_0 = [keys_in_langs][0][0]
+                        lang_1 = [keys_not_in_langs][0][0]
+
+                        title = track["names"][lang_1] + " " + "(" + track["names"][lang_0] + ")"
+
+                    elif num_names == 1:
+                        lang_0 = [keys_in_langs][0][0]
+
+                        title = track["names"][lang_0]
+
+                elif keys_not_in_langs and name_eng_ro_jpn:
+                    if num_names == 3:
+                        lang_1 = [keys_not_in_langs][0][0]
+                        lang_2 = [keys_not_in_langs][0][1]
+                        lang_3 = [keys_not_in_langs][0][2]
+
+                        title = track["names"][lang_2] + " " + "(" + track["names"][lang_1] + "_" + track["names"][lang_3] + ")"
+
+                    elif num_names == 2:
+                        lang_1 = [keys_not_in_langs][0][0]
+                        lang_2 = [keys_not_in_langs][0][1]
+
+                        title = track["names"][lang_2] + " " + "(" + track["names"][lang_1] + ")"
+
+                    elif num_names == 1:
+                        lang_1 = [keys_not_in_langs][0][0]
+
+                        title = track["names"][lang_1]
+
+                    else:
+                        print("THIS TRACKLIST IS POORLY FORMATTED. FIX IN AN EXTERNAL PROGRAM.")
+                        break
                 else:
                     title = track["names"].values()[0]
+                    # log.debug("Something went wrong. None of the values match.")
+                    # break
 
                 index = total_index
 
@@ -188,6 +252,8 @@ class VGMdbPlugin(BeetsPlugin):
                         self.decod(album_id),
                         artist,
                         self.decod(artist_id),
+                        lyricist,
+                        self.decod(lyricist_id),
                         Tracks,
                         asin=None,
                         albumtype=None,
