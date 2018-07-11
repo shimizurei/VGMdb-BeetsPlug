@@ -135,17 +135,21 @@ class VGMdbPlugin(BeetsPlugin):
             artist_id = None
 
         # Get Lyricist Information
-        lyricists = []
-        for lyricist in item["lyricists"]:
-            if lyricist["names"].has_key(self.lang[0]):
-                lyricists.append(lyricist["names"][self.lang[0]])
-            else:
-                lyricists.append(lyricist["names"]["ja"])
+        try:
+            lyricists = []
+            for lyricist in item["lyricists"]:
+                if lyricist["names"].has_key(self.lang[0]):
+                    lyricists.append(lyricist["names"][self.lang[0]])
+                else:
+                    lyricists.append(lyricist["names"]["ja"])
 
-        lyricist = lyricists[0] #need try/except
-        if item["lyricists"][0].has_key("link"):
-            lyricist_id = item["lyricists"][0]["link"][7:]
-        else:
+            lyricist = lyricists[0] #need try/except
+            if item["lyricists"][0].has_key("link"):
+                lyricist_id = item["lyricists"][0]["link"][7:]
+            else:
+                lyricist_id = None
+        except IndexError as e:
+            lyricist = None
             lyricist_id = None
 
         # Get Track metadata
